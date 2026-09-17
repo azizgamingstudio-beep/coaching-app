@@ -576,6 +576,21 @@
       <h2>বাংলা উচ্চারণ</h2>
       <div id="pronoOutput" class="placeholder-box">উপরে কিছু লিখে "শোনো" চাপো</div>
     </div>
+
+    <div class="card header-card">
+      <h1>আরবি উচ্চারণ</h1>
+      <p class="meta">আরবি লেখা পেস্ট করো, শোনো, আর বাংলা হরফে আনুমানিক উচ্চারণ দেখো</p>
+      <div class="arabic-note">এটিও আনুমানিক উচ্চারণ — আসল মাখরাজ/তাজবিদ শেখার জন্য স্যারের সরাসরি শেখানোর বিকল্প নেই।</div>
+    </div>
+    <div class="card">
+      <label class="field-label">আরবি লেখা</label>
+      <textarea id="pronoArInput" rows="4" style="width:100%; padding:10px 8px; border:1px solid var(--parchment-deep); border-radius:6px; font-family:inherit; font-size:1.2rem; direction:rtl; resize:vertical;" placeholder="এখানে আরবি লেখো..."></textarea>
+      <button type="button" class="primary" style="margin-top:14px;" id="pronoArPlayBtn">▶ শোনো</button>
+    </div>
+    <div class="card">
+      <h2>বাংলা উচ্চারণ</h2>
+      <div id="pronoArOutput" class="placeholder-box">উপরে কিছু লিখে "শোনো" চাপো</div>
+    </div>
   </div>
 
 </div>
@@ -2164,6 +2179,84 @@ document.getElementById('pronoPlayBtn').addEventListener('click', () => {
 
   const phonetic = englishToBanglaPhonetic(text);
   outputBox.innerHTML = `<div style="font-size:1.15rem; line-height:1.9;">${phonetic}</div>`;
+});
+
+// --- Arabic to Bengali phonetic approximation ---
+const arabicConsonantMap = {
+  'ب':'ব','ت':'ত','ث':'স','ج':'জ','ح':'হ','خ':'খ','د':'দ','ذ':'য',
+  'ر':'র','ز':'য','س':'স','ش':'শ','ص':'স','ض':'দ','ط':'ত','ظ':'য',
+  'ع':'অ','غ':'গ','ف':'ফ','ق':'ক','ك':'ক','ل':'ল','م':'ম','ن':'ন',
+  'ه':'হ','ة':'হ'
+};
+const bengaliVowelSign = { 'a':'', 'i':'ি', 'u':'ু', 'aa':'া', 'ii':'ী', 'uu':'ূ' };
+
+function arabicToBanglaPhonetic(text){
+  const chars = Array.from(text);
+  let result = '';
+  let i = 0;
+  while (i < chars.length){
+    const ch = chars[i];
+
+    if (ch === ' ' || ch === '\n'){ result += ' '; i++; continue; }
+    if (!arabicConsonantMap[ch] && !['ا','و','ي','ء','أ','إ','آ'].includes(ch)){
+      i++; continue; // skip punctuation/unrecognized marks (harakat handled via lookahead below)
+    }
+
+    // standalone alif variants at word start act as a vowel carrier
+    if (['ا','أ','إ','آ'].includes(ch)){
+      const next = chars[i+1];
+      if (next === '\u064E'){ result += 'আ'; i += 2; continue; }
+      if (next === '\u0650'){ result += 'ই'; i += 2; continue; }
+      if (next === '\u064F'){ result += 'উ'; i += 2; continue; }
+      result += 'আ'; i++; continue;
+    }
+    if (ch === 'ء'){ result += 'অ'; i++; continue; }
+
+    let base = arabicConsonantMap[ch];
+    if (!base){ i++; continue; }
+    i++;
+
+    let hasShadda = false;
+    if (chars[i] === '\u0651'){ hasShadda = true; i++; }
+
+    let vowel = 'a'; // default (fatha / inherent)
+    if (chars[i] === '\u064E'){ vowel = 'a'; i++; }
+    else if (chars[i] === '\u0650'){ vowel = 'i'; i++; }
+    else if (chars[i] === '\u064F'){ vowel = 'u'; i++; }
+    else if (chars[i] === '\u0652'){ vowel = 'sukun'; i++; }
+
+    // long vowels: consonant + harakat + matching weak letter
+    if (vowel === 'a' && chars[i] === 'ا'){ vowel = 'aa'; i++; }
+    else if (vowel === 'i' && chars[i] === 'ي'){ vowel = 'ii'; i++; }
+    else if (vowel === 'u' && chars[i] === 'و'){ vowel = 'uu'; i++; }
+
+    if (hasShadda) result += base + '্';
+    if (vowel === 'sukun'){
+      result += base + '্';
+    } else {
+      result += base + (bengaliVowelSign[vowel] || '');
+    }
+  }
+  return result.replace(/\s+/g, ' ').trim();
+}
+
+document.getElementById('pronoArPlayBtn').addEventListener('click', () => {
+  const text = document.getElementById('pronoArInput').value.trim();
+  const outputBox = document.getElementById('pronoArOutput');
+  if (!text){
+    alert('আগে কিছু আরবি লেখা লেখো।');
+    return;
+  }
+  try{
+    speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ar-SA';
+    utterance.rate = 0.8;
+    speechSynthesis.speak(utterance);
+  }catch(e){ /* speech synthesis not supported — still show phonetic text below */ }
+
+  const phonetic = arabicToBanglaPhonetic(text);
+  outputBox.innerHTML = `<div style="font-size:1.15rem; line-height:1.9;">${phonetic || '(চিনতে পারিনি)'}</div>`;
 });
 
 document.getElementById('retryBtn').addEventListener('click', () => {
