@@ -1,4 +1,4 @@
-const CACHE_NAME = 'alis-math-app-v1';
+const CACHE_NAME = 'alis-math-app-v2';
 const SHELL_FILES = [
   './',
   './index.html',
@@ -34,22 +34,19 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// cache-first for the app shell, network-first fallback to cache for everything else same-origin
+// network-first: always try the live version when online, only use the cached
+// copy when the network request fails (i.e. truly offline)
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
 
   event.respondWith(
-    caches.match(req).then((cached) => {
-      if (cached) return cached;
-      return fetch(req).then((res) => {
-        // stash a copy for next time (same-origin only)
-        if (req.url.startsWith(self.location.origin)) {
-          const resClone = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone));
-        }
-        return res;
-      }).catch(() => cached);
-    })
+    fetch(req).then((res) => {
+      if (req.url.startsWith(self.location.origin)) {
+        const resClone = res.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone));
+      }
+      return res;
+    }).catch(() => caches.match(req))
   );
 });
