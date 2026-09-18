@@ -18,7 +18,12 @@
     --gold:#B8860B;
     --correct:#2D6A4F;
     --wrong:#8C3B3B;
-    --card-shadow: 0 2px 0 rgba(27,67,50,0.12);
+    --card-shadow: 0 4px 16px rgba(27,67,50,0.08);
+    --card-shadow-active: 0 1px 4px rgba(27,67,50,0.10);
+    --tint-mint-bg:#E1F0E6; --tint-mint-fg:#1B4332;
+    --tint-gold-bg:#FBEFD1; --tint-gold-fg:#8A6110;
+    --tint-blue-bg:#E3EEF7; --tint-blue-fg:#2E5A87;
+    --tint-rose-bg:#F6E4E1; --tint-rose-fg:#8A3E30;
   }
   *{box-sizing:border-box;}
   body{
@@ -36,11 +41,13 @@
   .card{
     background:#fff;
     border:1px solid var(--parchment-deep);
-    border-radius:4px;
+    border-radius:16px;
     padding:22px 20px;
     margin-bottom:18px;
     box-shadow:var(--card-shadow);
+    transition:transform 0.15s ease, box-shadow 0.15s ease;
   }
+  .card:active{ transform:scale(0.99); box-shadow:var(--card-shadow-active); }
   .header-card{ border-top:4px solid var(--forest); }
   h1{ font-size:1.4rem; margin:0 0 10px; color:var(--forest-deep); font-weight:700; }
   h2{ font-size:1.15rem; margin:0 0 4px; color:var(--forest-deep); }
@@ -52,15 +59,19 @@
   .menu-grid{ display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; }
   .menu-item{
     display:flex; flex-direction:column; align-items:center; text-align:center;
-    background:#fff; border:1px solid var(--parchment-deep); border-radius:12px;
+    background:#fff; border:1px solid var(--parchment-deep); border-radius:16px;
     padding:20px 10px 16px; cursor:pointer; box-shadow:var(--card-shadow); position:relative;
+    transition:transform 0.15s ease, box-shadow 0.15s ease;
   }
+  .menu-item:active{ transform:scale(0.96); box-shadow:var(--card-shadow-active); }
   .menu-icon-circle{
-    width:52px; height:52px; border-radius:50%; background:var(--parchment);
+    width:52px; height:52px; border-radius:50%; background:var(--tint-mint-bg); color:var(--tint-mint-fg);
     display:flex; align-items:center; justify-content:center; font-size:1.6rem;
     margin-bottom:10px; position:relative;
   }
-  .menu-item.gold .menu-icon-circle{ background:#F3E7C9; }
+  .menu-item.gold .menu-icon-circle{ background:var(--tint-gold-bg); color:var(--tint-gold-fg); }
+  .menu-item.tint-blue .menu-icon-circle{ background:var(--tint-blue-bg); color:var(--tint-blue-fg); }
+  .menu-item.tint-rose .menu-icon-circle{ background:var(--tint-rose-bg); color:var(--tint-rose-fg); }
   .notif-dot{
     position:absolute; top:-2px; right:-2px; width:12px; height:12px;
     background:#D64545; border-radius:50%; border:2px solid #fff; display:none;
@@ -81,7 +92,8 @@
   .qnum{ font-size:0.8rem; color:#888; margin-bottom:6px; }
   .arabic-word{ direction:rtl; font-size:1.6rem; color:var(--forest-deep); font-weight:600; display:block; margin:4px 0 14px; }
   .qtext{ font-size:1.05rem; font-weight:600; margin-bottom:14px; }
-  .option{ display:flex; align-items:flex-start; gap:10px; padding:10px 8px; border-radius:4px; cursor:pointer; margin-bottom:4px; }
+  .option{ display:flex; align-items:flex-start; gap:10px; padding:10px 8px; border-radius:10px; cursor:pointer; margin-bottom:4px; transition:transform 0.1s ease, background 0.1s ease; }
+  .option:active{ transform:scale(0.98); }
   .option:hover{ background:var(--parchment); }
   .option input{ margin-top:3px; }
   .option span{ font-size:0.98rem; }
@@ -92,14 +104,17 @@
   .mark.no{ color:var(--wrong); }
   button.primary{
     background:var(--forest); color:#fff; border:none; padding:13px 22px;
-    font-size:1rem; border-radius:4px; cursor:pointer; font-family:inherit; font-weight:600; width:100%;
+    font-size:1rem; border-radius:12px; cursor:pointer; font-family:inherit; font-weight:600; width:100%;
+    transition:transform 0.12s ease, background 0.12s ease;
   }
-  button.primary:active{ background:var(--forest-deep); }
+  button.primary:active{ background:var(--forest-deep); transform:scale(0.97); }
   button.secondary{
     background:transparent; color:var(--forest); border:1.5px solid var(--forest);
-    margin-top:10px; padding:13px 22px; font-size:1rem; border-radius:4px; cursor:pointer;
+    margin-top:10px; padding:13px 22px; font-size:1rem; border-radius:12px; cursor:pointer;
     font-family:inherit; font-weight:600; width:100%;
+    transition:transform 0.12s ease, background 0.12s ease;
   }
+  button.secondary:active{ background:rgba(27,67,50,0.08); transform:scale(0.97); }
   .score-banner{ text-align:center; padding:24px 10px; }
   .score-num{ font-size:2.6rem; font-weight:800; color:var(--forest-deep); }
   .score-label{ color:#666; font-size:0.95rem; }
@@ -111,8 +126,10 @@
   .sched-row:last-child{ border-bottom:none; }
   .rank-row{
     display:flex; align-items:center; gap:12px; padding:12px 10px;
-    border-radius:8px; margin-bottom:8px; background:var(--parchment);
+    border-radius:12px; margin-bottom:8px; background:var(--parchment);
+    transition:transform 0.12s ease;
   }
+  .rank-row:active{ transform:scale(0.98); }
   .rank-pos{ width:32px; text-align:center; font-weight:800; font-size:1.15rem; color:var(--forest-deep); }
   .rank-name{ flex:1; font-weight:600; }
   .rank-pct{ font-weight:800; padding:4px 12px; border-radius:20px; background:var(--forest); color:#fff; font-size:0.9rem; }
@@ -134,25 +151,31 @@
     flex-shrink:0; width:42px; height:42px; border-radius:50%;
     background:var(--forest); color:#fff; display:flex; align-items:center;
     justify-content:center; font-weight:700; font-size:1.1rem; cursor:pointer;
+    transition:transform 0.12s ease;
   }
+  .avatar-badge:active{ transform:scale(0.92); }
   .ssc-badge{
     display:inline-block; background:var(--gold); color:#fff; font-size:0.68rem;
     font-weight:700; letter-spacing:0.04em; padding:2px 8px; border-radius:10px;
   }
   .bottom-nav{
-    position:fixed; bottom:0; left:0; right:0; height:58px; background:#fff;
-    border-top:1px solid var(--parchment-deep); display:flex; align-items:center;
+    position:fixed; bottom:0; left:0; right:0; height:62px;
+    background:rgba(255,255,255,0.82); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    border-top:1px solid rgba(237,227,196,0.7); display:flex; align-items:center;
     justify-content:space-around; z-index:10; max-width:640px; margin:0 auto;
+    box-shadow:0 -4px 20px rgba(27,67,50,0.06);
   }
   .bottom-nav-item{
     display:flex; flex-direction:column; align-items:center; gap:2px;
     cursor:pointer; color:#888; font-size:0.68rem; font-weight:600; width:70px;
+    transition:transform 0.12s ease;
   }
+  .bottom-nav-item:active{ transform:scale(0.9); }
   .bottom-nav-item .icon{ font-size:1.3rem; line-height:1; }
   .bottom-nav-item.center{
-    background:var(--forest); color:#fff; width:54px; height:54px;
-    border-radius:50%; justify-content:center; margin-top:-22px;
-    box-shadow:0 2px 8px rgba(27,67,50,0.35);
+    background:linear-gradient(150deg, var(--forest), var(--forest-deep)); color:#fff; width:56px; height:56px;
+    border-radius:50%; justify-content:center; margin-top:-26px;
+    box-shadow:0 4px 14px rgba(27,67,50,0.4), 0 0 0 4px rgba(255,255,255,0.85);
   }
   .bottom-nav-item.center .icon{ font-size:1.5rem; }
   .celebrate-overlay{
@@ -253,12 +276,12 @@
         <div class="menu-title">NOTES</div>
         <div class="menu-sub">স্টোরেজ বক্স — সব নোট এক জায়গায়</div>
       </div>
-      <div class="menu-item" onclick="navigate('screen-schedule')">
+      <div class="menu-item tint-blue" onclick="navigate('screen-schedule')">
         <div class="menu-icon-circle">📅</div>
         <div class="menu-title">SCHEDULE</div>
         <div class="menu-sub">ব্যাচের সময়সূচি</div>
       </div>
-      <div class="menu-item gold" onclick="navigate('screen-announce')">
+      <div class="menu-item tint-rose" onclick="navigate('screen-announce')">
         <div class="menu-icon-circle">📢<span class="notif-dot" id="dotAnnounce"></span></div>
         <div class="menu-title">ANNOUNCEMENTS</div>
         <div class="menu-sub">স্যারের বার্তা</div>
@@ -273,7 +296,7 @@
         <div class="menu-title">MEMBERS</div>
         <div class="menu-sub">প্রোফাইল র‍্যাংকিং ও অর্জন</div>
       </div>
-      <div class="menu-item" onclick="navigate('screen-pronunciation')" style="grid-column:span 2;">
+      <div class="menu-item tint-blue" onclick="navigate('screen-pronunciation')" style="grid-column:span 2;">
         <div class="menu-icon-circle">🔊</div>
         <div class="menu-title">PRONUNCIATION</div>
         <div class="menu-sub">ইংরেজি ও আরবি শোনো, বাংলা উচ্চারণ দেখো</div>
