@@ -49,24 +49,24 @@
     background:none; border:none; color:var(--forest); font-size:0.95rem;
     font-weight:600; padding:0 0 14px; cursor:pointer; display:flex; align-items:center; gap:6px; width:auto;
   }
-  .menu-grid{ display:flex; flex-direction:column; gap:12px; }
+  .menu-grid{ display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; }
   .menu-item{
-    display:flex; align-items:center; gap:14px;
-    background:#fff; border:1px solid var(--parchment-deep); border-radius:4px;
-    padding:16px; cursor:pointer; box-shadow:var(--card-shadow); text-align:left;
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+    background:#fff; border:1px solid var(--parchment-deep); border-radius:12px;
+    padding:20px 10px 16px; cursor:pointer; box-shadow:var(--card-shadow); position:relative;
   }
-  .menu-badge{
-    flex-shrink:0; width:42px; height:42px; border-radius:50%;
-    background:var(--forest); color:#fff; display:flex; align-items:center;
-    justify-content:center; font-weight:700; font-size:1.05rem; position:relative;
+  .menu-icon-circle{
+    width:52px; height:52px; border-radius:50%; background:var(--parchment);
+    display:flex; align-items:center; justify-content:center; font-size:1.6rem;
+    margin-bottom:10px; position:relative;
   }
+  .menu-item.gold .menu-icon-circle{ background:#F3E7C9; }
   .notif-dot{
     position:absolute; top:-2px; right:-2px; width:12px; height:12px;
     background:#D64545; border-radius:50%; border:2px solid #fff; display:none;
   }
-  .menu-item.gold .menu-badge{ background:var(--gold); }
-  .menu-title{ font-weight:700; font-size:1.02rem; margin-bottom:2px; }
-  .menu-sub{ font-size:0.85rem; color:#666; }
+  .menu-title{ font-weight:700; font-size:0.92rem; margin-bottom:2px; }
+  .menu-sub{ font-size:0.72rem; color:#666; line-height:1.3; }
   .arabic-note{
     background:var(--parchment); border-left:3px solid var(--gold);
     padding:8px 12px; font-size:0.88rem; color:#5a4a1e; margin-top:10px;
@@ -244,32 +244,39 @@
     </div>
     <div class="menu-grid">
       <div class="menu-item" onclick="navigate('screen-exam')">
-        <div class="menu-badge">E</div>
-        <div><div class="menu-title">EXAM</div><div class="menu-sub">MCQ অনুশীলন পরীক্ষা</div></div>
+        <div class="menu-icon-circle">📝</div>
+        <div class="menu-title">EXAM</div>
+        <div class="menu-sub">MCQ অনুশীলন পরীক্ষা</div>
       </div>
       <div class="menu-item gold" onclick="navigate('screen-notes')">
-        <div class="menu-badge">N<span class="notif-dot" id="dotNotes"></span></div>
-        <div><div class="menu-title">NOTES</div><div class="menu-sub">স্টোরেজ বক্স — সব নোট এক জায়গায়</div></div>
+        <div class="menu-icon-circle">🗂️<span class="notif-dot" id="dotNotes"></span></div>
+        <div class="menu-title">NOTES</div>
+        <div class="menu-sub">স্টোরেজ বক্স — সব নোট এক জায়গায়</div>
       </div>
       <div class="menu-item" onclick="navigate('screen-schedule')">
-        <div class="menu-badge">S</div>
-        <div><div class="menu-title">SCHEDULE</div><div class="menu-sub">ব্যাচের সময়সূচি</div></div>
+        <div class="menu-icon-circle">📅</div>
+        <div class="menu-title">SCHEDULE</div>
+        <div class="menu-sub">ব্যাচের সময়সূচি</div>
       </div>
       <div class="menu-item gold" onclick="navigate('screen-announce')">
-        <div class="menu-badge">A<span class="notif-dot" id="dotAnnounce"></span></div>
-        <div><div class="menu-title">ANNOUNCEMENTS</div><div class="menu-sub">স্যারের বার্তা</div></div>
+        <div class="menu-icon-circle">📢<span class="notif-dot" id="dotAnnounce"></span></div>
+        <div class="menu-title">ANNOUNCEMENTS</div>
+        <div class="menu-sub">স্যারের বার্তা</div>
       </div>
       <div class="menu-item" onclick="navigate('screen-shareboard')">
-        <div class="menu-badge">B<span class="notif-dot" id="dotShareboard"></span></div>
-        <div><div class="menu-title">SHARE BOARD</div><div class="menu-sub">লেখা/ছবি সবার সাথে শেয়ার করো</div></div>
+        <div class="menu-icon-circle">📌<span class="notif-dot" id="dotShareboard"></span></div>
+        <div class="menu-title">SHARE BOARD</div>
+        <div class="menu-sub">লেখা/ছবি সবার সাথে শেয়ার করো</div>
       </div>
       <div class="menu-item gold" onclick="navigate('screen-members')">
-        <div class="menu-badge">👥</div>
-        <div><div class="menu-title">MEMBERS</div><div class="menu-sub">প্রোফাইল র‍্যাংকিং ও অর্জন</div></div>
+        <div class="menu-icon-circle">👥</div>
+        <div class="menu-title">MEMBERS</div>
+        <div class="menu-sub">প্রোফাইল র‍্যাংকিং ও অর্জন</div>
       </div>
-      <div class="menu-item" onclick="navigate('screen-pronunciation')">
-        <div class="menu-badge">🔊</div>
-        <div><div class="menu-title">PRONUNCIATION</div><div class="menu-sub">ইংরেজি শোনো ও বাংলা উচ্চারণ দেখো</div></div>
+      <div class="menu-item" onclick="navigate('screen-pronunciation')" style="grid-column:span 2;">
+        <div class="menu-icon-circle">🔊</div>
+        <div class="menu-title">PRONUNCIATION</div>
+        <div class="menu-sub">ইংরেজি ও আরবি শোনো, বাংলা উচ্চারণ দেখো</div>
       </div>
     </div>
   </div>
