@@ -382,10 +382,20 @@
         <div class="menu-title">MEMBERS</div>
         <div class="menu-sub">প্রোফাইল র‍্যাংকিং ও অর্জন</div>
       </div>
-      <div class="menu-item tint-blue" onclick="navigate('screen-pronunciation')" style="grid-column:span 2;">
+      <div class="menu-item tint-blue" onclick="navigate('screen-pronunciation')">
         <div class="menu-icon-circle">🔊</div>
         <div class="menu-title">PRONUNCIATION</div>
         <div class="menu-sub">ইংরেজি ও আরবি শোনো, বাংলা উচ্চারণ দেখো</div>
+      </div>
+      <div class="menu-item tint-rose" onclick="navigate('screen-personal-notes')">
+        <div class="menu-icon-circle">🔒</div>
+        <div class="menu-title">MY NOTEBOOK</div>
+        <div class="menu-sub">তোমার একান্ত ব্যক্তিগত নোট</div>
+      </div>
+      <div class="menu-item gold" onclick="navigate('screen-calculator')" style="grid-column:span 2;">
+        <div class="menu-icon-circle">🧮</div>
+        <div class="menu-title">MATH CALCULATOR</div>
+        <div class="menu-sub">ক্ষেত্রফল, সমীকরণ, শতকরা — অফলাইনে হিসাব করো</div>
       </div>
     </div>
   </div>
@@ -721,6 +731,65 @@
     </div>
   </div>
 
+  <!-- PERSONAL NOTEBOOK -->
+  <div class="screen" id="screen-personal-notes">
+    <button class="backbtn" onclick="navigate('screen-home')">← হোমে ফিরো</button>
+    <div class="card header-card" style="background:var(--forest-deep); border-top:none;">
+      <div style="color:#fff; display:flex; align-items:center; gap:10px;">
+        <div style="font-size:1.5rem;">🔒</div>
+        <div>
+          <h1 style="color:#fff; margin-bottom:2px;">My Notebook</h1>
+          <p class="meta" style="color:#cfe0d6; margin:0;">এটা তোমার একান্ত ব্যক্তিগত নোটবুক — তুমি ছাড়া আর কেউ এটা দেখবে না।</p>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <label class="field-label">Search Notes</label>
+      <input type="text" id="pnSearchInput" placeholder="নোট খুঁজো...">
+    </div>
+    <div class="card">
+      <label class="field-label">নতুন নোট লেখো</label>
+      <textarea id="pnTextInput" rows="3" style="width:100%; padding:10px 8px; border:1px solid var(--parchment-deep); border-radius:6px; font-family:inherit; font-size:1rem; resize:vertical;" placeholder="তোমার নোট, প্যারাগ্রাফ, বা যা খুশি লেখো..."></textarea>
+      <label class="field-label" style="margin-top:12px;">ছবি (ঐচ্ছিক)</label>
+      <input type="file" id="pnImageInput" accept="image/*">
+      <button type="button" class="requires-online primary" style="margin-top:14px;" id="pnSaveBtn">নোট সেভ করো</button>
+    </div>
+    <div class="card">
+      <div id="pnList" class="placeholder-box">লোড হচ্ছে...</div>
+    </div>
+  </div>
+
+  <!-- MATH CALCULATOR -->
+  <div class="screen" id="screen-calculator">
+    <button class="backbtn" onclick="navigate('screen-home')">← হোমে ফিরো</button>
+    <div class="card header-card">
+      <h1>Math Calculator</h1>
+      <p class="meta">নবম-দশম শ্রেণির সাধারণ গণিত — অফলাইনে হিসাব করো</p>
+    </div>
+    <div class="card">
+      <label class="field-label">কোন হিসাব করতে চাও?</label>
+      <select id="calcTopicSelect" style="width:100%; padding:10px 8px; border:1px solid var(--parchment-deep); border-radius:6px; font-family:inherit; font-size:1rem;">
+        <option value="rectangle">আয়তক্ষেত্রের ক্ষেত্রফল ও পরিসীমা</option>
+        <option value="square">বর্গক্ষেত্রের ক্ষেত্রফল ও পরিসীমা</option>
+        <option value="triangle">ত্রিভুজের ক্ষেত্রফল</option>
+        <option value="circle">বৃত্তের ক্ষেত্রফল ও পরিধি</option>
+        <option value="trapezium">ট্রাপিজিয়ামের ক্ষেত্রফল</option>
+        <option value="quadratic">দ্বিঘাত সমীকরণ সমাধান (ax²+bx+c=0)</option>
+        <option value="percentage">শতকরা হিসাব</option>
+        <option value="simpleInterest">সরল সুদ</option>
+        <option value="pythagoras">পিথাগোরাসের উপপাদ্য</option>
+      </select>
+    </div>
+    <div class="card">
+      <div id="calcInputs"></div>
+      <button type="button" class="primary" style="margin-top:14px;" id="calcComputeBtn">হিসাব করো</button>
+    </div>
+    <div class="card">
+      <h2>ফলাফল</h2>
+      <div id="calcOutput" class="placeholder-box">উপরে মান বসিয়ে "হিসাব করো" চাপো</div>
+    </div>
+  </div>
+
 </div>
 
 <div class="bottom-nav">
@@ -821,6 +890,7 @@ async function navigate(id){
   if (id === 'screen-myreport') loadMyReport();
   if (id === 'screen-shareboard'){ loadShareBoard(); markSeen('shareboard'); }
   if (id === 'screen-members') loadMembers();
+  if (id === 'screen-personal-notes') loadPersonalNotes();
   if (id === 'screen-home'){ checkNotifications(); showFunMessage(); }
 }
 
@@ -2651,6 +2721,170 @@ document.getElementById('themeToggleBtn').addEventListener('click', () => {
   applyTheme();
 });
 applyTheme();
+
+// --- PERSONAL NOTEBOOK ---
+let personalNotesCache = [];
+let editingPersonalNoteId = null;
+
+async function loadPersonalNotes(){
+  const box = document.getElementById('pnList');
+  box.textContent = 'লোড হচ্ছে...';
+  try{
+    const snapshot = await db.collection('personalNotes').where('owner', '==', currentStudent.name).get();
+    personalNotesCache = [];
+    snapshot.forEach(doc => personalNotesCache.push({ id: doc.id, ...doc.data() }));
+    personalNotesCache.sort((a,b) => new Date(b.date) - new Date(a.date));
+    renderPersonalNotes(personalNotesCache);
+  }catch(e){
+    box.innerHTML = '<div class="placeholder-box">লোড করতে সমস্যা হয়েছে।</div>';
+  }
+}
+
+function renderPersonalNotes(list){
+  const box = document.getElementById('pnList');
+  if (!list.length){
+    box.innerHTML = '<div class="placeholder-box">এখনো কোনো নোট নেই। উপরে লিখে সেভ করো।</div>';
+    return;
+  }
+  box.innerHTML = '';
+  list.forEach(n => {
+    const item = document.createElement('div');
+    item.className = 'note-item';
+    let html = `<div class="meta">${new Date(n.date).toLocaleDateString('bn-BD')}</div><div class="note-title" style="font-weight:400; font-size:1rem;">${n.text || ''}</div>`;
+    if (n.image) html += `<img class="sb-img" src="${n.image}" style="cursor:pointer;" onclick="openImageLightbox('${n.image}')">`;
+    item.innerHTML = html;
+
+    const btnRow = document.createElement('div');
+    btnRow.style.cssText = 'display:flex; gap:10px; margin-top:6px;';
+    const editBtn = document.createElement('button');
+    editBtn.className = 'sb-del requires-online';
+    editBtn.type = 'button';
+    editBtn.style.color = 'var(--forest)';
+    editBtn.textContent = 'এডিট করো';
+    editBtn.addEventListener('click', () => {
+      editingPersonalNoteId = n.id;
+      document.getElementById('pnTextInput').value = n.text || '';
+      document.getElementById('pnSaveBtn').textContent = 'আপডেট করো';
+      document.getElementById('pnTextInput').scrollIntoView({behavior:'smooth'});
+    });
+    const delBtn = document.createElement('button');
+    delBtn.className = 'sb-del requires-online';
+    delBtn.type = 'button';
+    delBtn.textContent = 'মুছে ফেলো';
+    delBtn.addEventListener('click', async () => {
+      if (!confirm('এই নোটটা মুছে ফেলবে?')) return;
+      await db.collection('personalNotes').doc(n.id).delete();
+      loadPersonalNotes();
+    });
+    btnRow.appendChild(editBtn);
+    btnRow.appendChild(delBtn);
+    item.appendChild(btnRow);
+    box.appendChild(item);
+  });
+}
+
+document.getElementById('pnSearchInput').addEventListener('input', () => {
+  const term = document.getElementById('pnSearchInput').value.trim().toLowerCase();
+  if (!term){ renderPersonalNotes(personalNotesCache); return; }
+  renderPersonalNotes(personalNotesCache.filter(n => (n.text || '').toLowerCase().includes(term)));
+});
+
+document.getElementById('pnSaveBtn').addEventListener('click', async () => {
+  const textField = document.getElementById('pnTextInput');
+  const imageInput = document.getElementById('pnImageInput');
+  if (!textField.value.trim() && !imageInput.files[0]){
+    alert('লেখা বা ছবি অন্তত একটা দাও।');
+    return;
+  }
+  try{
+    let imageData = null;
+    if (imageInput.files[0]) imageData = await resizeImageFile(imageInput.files[0], 700);
+    const data = { owner: currentStudent.name, text: textField.value.trim(), date: new Date().toISOString() };
+    if (imageData) data.image = imageData;
+    if (editingPersonalNoteId){
+      await db.collection('personalNotes').doc(editingPersonalNoteId).set(data, { merge: true });
+      editingPersonalNoteId = null;
+      document.getElementById('pnSaveBtn').textContent = 'নোট সেভ করো';
+    } else {
+      data.image = imageData;
+      await db.collection('personalNotes').add(data);
+    }
+    textField.value = '';
+    imageInput.value = '';
+    loadPersonalNotes();
+  }catch(e){
+    alert('সেভ করতে সমস্যা হয়েছে, আবার চেষ্টা করো।');
+  }
+});
+
+// --- MATH CALCULATOR ---
+const calcTopicFields = {
+  rectangle: [{id:'l', label:'দৈর্ঘ্য'}, {id:'w', label:'প্রস্থ'}],
+  square: [{id:'s', label:'বাহু'}],
+  triangle: [{id:'b', label:'ভূমি'}, {id:'h', label:'উচ্চতা'}],
+  circle: [{id:'r', label:'ব্যাসার্ধ'}],
+  trapezium: [{id:'a', label:'সমান্তরাল বাহু ১'}, {id:'b', label:'সমান্তরাল বাহু ২'}, {id:'h', label:'উচ্চতা'}],
+  quadratic: [{id:'a', label:'a'}, {id:'b', label:'b'}, {id:'c', label:'c'}],
+  percentage: [{id:'part', label:'যে সংখ্যা'}, {id:'total', label:'মোট সংখ্যা'}],
+  simpleInterest: [{id:'p', label:'আসল (P)'}, {id:'r', label:'সুদের হার % (R)'}, {id:'t', label:'সময় বছর (T)'}],
+  pythagoras: [{id:'a', label:'ভূমি (a)'}, {id:'b', label:'লম্ব (b)'}]
+};
+
+function renderCalcInputs(){
+  const topic = document.getElementById('calcTopicSelect').value;
+  const fields = calcTopicFields[topic];
+  document.getElementById('calcInputs').innerHTML = fields.map(f => `
+    <label class="field-label" style="margin-top:10px;">${f.label}</label>
+    <input type="text" inputmode="decimal" id="calc_${f.id}" placeholder="মান লিখো">
+  `).join('');
+  document.getElementById('calcOutput').innerHTML = '<div class="placeholder-box">উপরে মান বসিয়ে "হিসাব করো" চাপো</div>';
+}
+document.getElementById('calcTopicSelect').addEventListener('change', renderCalcInputs);
+
+document.getElementById('calcComputeBtn').addEventListener('click', () => {
+  const topic = document.getElementById('calcTopicSelect').value;
+  const fields = calcTopicFields[topic];
+  const vals = {};
+  for (const f of fields){
+    const v = parseFloat(document.getElementById(`calc_${f.id}`).value);
+    if (isNaN(v)){ alert('সব ঘরে সঠিক সংখ্যা দাও।'); return; }
+    vals[f.id] = v;
+  }
+  const out = document.getElementById('calcOutput');
+  let html = '';
+  if (topic === 'rectangle'){
+    html = `<div class="sched-row"><span>ক্ষেত্রফল</span><span>${(vals.l*vals.w).toFixed(2)}</span></div><div class="sched-row"><span>পরিসীমা</span><span>${(2*(vals.l+vals.w)).toFixed(2)}</span></div>`;
+  } else if (topic === 'square'){
+    html = `<div class="sched-row"><span>ক্ষেত্রফল</span><span>${(vals.s*vals.s).toFixed(2)}</span></div><div class="sched-row"><span>পরিসীমা</span><span>${(4*vals.s).toFixed(2)}</span></div>`;
+  } else if (topic === 'triangle'){
+    html = `<div class="sched-row"><span>ক্ষেত্রফল</span><span>${(0.5*vals.b*vals.h).toFixed(2)}</span></div>`;
+  } else if (topic === 'circle'){
+    html = `<div class="sched-row"><span>ক্ষেত্রফল</span><span>${(Math.PI*vals.r*vals.r).toFixed(2)}</span></div><div class="sched-row"><span>পরিধি</span><span>${(2*Math.PI*vals.r).toFixed(2)}</span></div>`;
+  } else if (topic === 'trapezium'){
+    html = `<div class="sched-row"><span>ক্ষেত্রফল</span><span>${(0.5*(vals.a+vals.b)*vals.h).toFixed(2)}</span></div>`;
+  } else if (topic === 'quadratic'){
+    const disc = vals.b*vals.b - 4*vals.a*vals.c;
+    if (vals.a === 0){
+      html = '<div class="placeholder-box">a শূন্য হতে পারবে না।</div>';
+    } else if (disc < 0){
+      html = `<div class="placeholder-box">বাস্তব সমাধান নেই (ডিসক্রিমিন্যান্ট ঋণাত্মক: ${disc.toFixed(2)})</div>`;
+    } else {
+      const x1 = (-vals.b + Math.sqrt(disc)) / (2*vals.a);
+      const x2 = (-vals.b - Math.sqrt(disc)) / (2*vals.a);
+      html = `<div class="sched-row"><span>x₁</span><span>${x1.toFixed(3)}</span></div><div class="sched-row"><span>x₂</span><span>${x2.toFixed(3)}</span></div>`;
+    }
+  } else if (topic === 'percentage'){
+    html = `<div class="sched-row"><span>শতকরা</span><span>${((vals.part/vals.total)*100).toFixed(2)}%</span></div>`;
+  } else if (topic === 'simpleInterest'){
+    const si = (vals.p * vals.r * vals.t) / 100;
+    html = `<div class="sched-row"><span>সুদ (I)</span><span>${si.toFixed(2)}</span></div><div class="sched-row"><span>সর্বমোট (P+I)</span><span>${(vals.p+si).toFixed(2)}</span></div>`;
+  } else if (topic === 'pythagoras'){
+    const c = Math.sqrt(vals.a*vals.a + vals.b*vals.b);
+    html = `<div class="sched-row"><span>অতিভুজ (c)</span><span>${c.toFixed(3)}</span></div>`;
+  }
+  out.innerHTML = html;
+});
+renderCalcInputs();
 
 navigate(currentStudent ? 'screen-home' : 'screen-login');
 updateOnlineStatus();
