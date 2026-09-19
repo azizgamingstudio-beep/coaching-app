@@ -225,6 +225,16 @@
     border-radius:14px; padding:16px; margin-bottom:12px; box-shadow:var(--card-shadow); cursor:pointer;
   }
   .folder-icon{ font-size:1.8rem; flex-shrink:0; }
+  .schedule-card{
+    background:#fff; border:1px solid var(--parchment-deep); border-radius:14px;
+    padding:16px; margin-bottom:12px; box-shadow:var(--card-shadow);
+  }
+  .schedule-badge{
+    display:inline-block; background:var(--tint-blue-bg); color:var(--tint-blue-fg);
+    font-weight:700; font-size:0.85rem; padding:4px 12px; border-radius:20px; margin-bottom:10px;
+  }
+  .schedule-row{ display:flex; align-items:center; gap:8px; font-size:0.95rem; margin-bottom:4px; color:var(--ink); }
+  .schedule-row:last-child{ margin-bottom:0; }
   .badge-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:14px; margin-top:14px; }
   .badge-item{ display:flex; flex-direction:column; align-items:center; text-align:center; font-size:0.7rem; color:#666; }
   .badge-circle{
@@ -283,6 +293,36 @@
     0% { transform:translateY(0) rotate(0deg); opacity:1; }
     100% { transform:translateY(110vh) rotate(360deg); opacity:0.8; }
   }
+
+  /* --- Dark mode --- */
+  body.dark-mode{
+    background:#141815; color:#E4E4E0;
+  }
+  body.dark-mode .topbar{ background:#0D110E; }
+  body.dark-mode .card,
+  body.dark-mode .menu-item,
+  body.dark-mode .schedule-card,
+  body.dark-mode .lecture-card,
+  body.dark-mode .folder-card,
+  body.dark-mode .pin-modal-card,
+  body.dark-mode .celebrate-card{
+    background:#1E2420; border-color:#333A35; color:#E4E4E0;
+  }
+  body.dark-mode h1, body.dark-mode h2{ color:#F0D98A; }
+  body.dark-mode .meta{ color:#A8AEA9; }
+  body.dark-mode .note-item, body.dark-mode .sched-row, body.dark-mode .sb-post{ border-color:#333A35; }
+  body.dark-mode .note-title{ color:#E4E4E0; }
+  body.dark-mode input[type="text"], body.dark-mode textarea, body.dark-mode input[type="password"]{
+    color:#E4E4E0; border-bottom-color:#555;
+  }
+  body.dark-mode .arabic-note{ background:#262B24; color:#D9C98B; }
+  body.dark-mode .placeholder-box{ color:#999; }
+  body.dark-mode .rank-row{ background:#232922; }
+  body.dark-mode .bottom-nav{ background:rgba(20,24,21,0.85); border-top-color:#333A35; }
+  body.dark-mode .bottom-nav-item{ color:#999; }
+  body.dark-mode .menu-icon-circle{ filter:brightness(0.9); }
+  body.dark-mode .backbtn{ color:#8FCBA8; }
+  body.dark-mode #themeToggleBtn{ background:#2A312B; }
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -303,7 +343,10 @@
             <span class="ssc-badge">SSC 27 BATCH</span>
           </div>
         </div>
-        <div class="avatar-badge" id="avatarBadge" onclick="navigate('screen-login')">A</div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <button type="button" id="themeToggleBtn" style="background:var(--parchment); border:none; width:38px; height:38px; border-radius:50%; font-size:1.1rem; cursor:pointer;">🌙</button>
+          <div class="avatar-badge" id="avatarBadge" onclick="navigate('screen-login')">A</div>
+        </div>
       </div>
       <p class="meta" style="margin-top:10px;">সব একসাথে — পরীক্ষা, নোট, রুটিন ও ঘোষণা</p>
       <p class="meta" id="funMessage" style="margin-top:4px; color:var(--gold); font-weight:600;"></p>
@@ -1218,11 +1261,12 @@ async function loadSchedule(){
     box.innerHTML = '';
     list.forEach(s => {
       const item = document.createElement('div');
-      item.className = 'note-item';
+      item.className = 'schedule-card';
       item.innerHTML = `
-        <div class="note-title">${s.batch} — ${s.time}</div>
-        ${s.book ? `<div class="meta">📘 ${s.book}</div>` : ''}
-        ${s.chapter ? `<div class="meta">${s.chapter}</div>` : ''}
+        <div class="schedule-badge">${s.batch}</div>
+        <div class="schedule-row">🕐 <span>${s.time}</span></div>
+        ${s.book ? `<div class="schedule-row">📘 <span>${s.book}</span></div>` : ''}
+        ${s.chapter ? `<div class="schedule-row">📖 <span>${s.chapter}</span></div>` : ''}
       `;
       const btnRow = document.createElement('div');
       btnRow.style.display = 'flex';
@@ -2188,6 +2232,64 @@ async function loadShareBoard(){
       addMoreWrap.appendChild(addMoreInput);
       item.appendChild(addMoreWrap);
 
+      const likes = p.likes || [];
+      const comments = p.comments || [];
+      const iLiked = currentStudent && likes.includes(currentStudent.name);
+
+      const engageRow = document.createElement('div');
+      engageRow.style.cssText = 'display:flex; align-items:center; gap:16px; margin-top:10px; padding-top:10px; border-top:1px solid var(--parchment-deep);';
+      const likeBtn = document.createElement('button');
+      likeBtn.type = 'button';
+      likeBtn.className = 'requires-online';
+      likeBtn.style.cssText = `background:none; border:none; cursor:pointer; font-size:0.95rem; color:${iLiked ? 'var(--wrong)' : '#888'};`;
+      likeBtn.innerHTML = `${iLiked ? '❤️' : '🤍'} ${likes.length}`;
+      likeBtn.addEventListener('click', async () => {
+        const updated = iLiked ? likes.filter(n => n !== currentStudent.name) : [...likes, currentStudent.name];
+        await db.collection('shareboard').doc(p.id).set({ likes: updated }, { merge: true });
+        loadShareBoard();
+      });
+      const commentCountLabel = document.createElement('span');
+      commentCountLabel.style.cssText = 'font-size:0.85rem; color:#888;';
+      commentCountLabel.textContent = `💬 ${comments.length} মন্তব্য`;
+      engageRow.appendChild(likeBtn);
+      engageRow.appendChild(commentCountLabel);
+      item.appendChild(engageRow);
+
+      if (comments.length){
+        const commentsBox = document.createElement('div');
+        commentsBox.style.marginTop = '8px';
+        comments.forEach(c => {
+          const cRow = document.createElement('div');
+          cRow.style.cssText = 'font-size:0.88rem; margin-bottom:4px;';
+          cRow.innerHTML = `<span style="font-weight:700; color:var(--forest-deep);">${c.name}:</span> ${c.text}`;
+          commentsBox.appendChild(cRow);
+        });
+        item.appendChild(commentsBox);
+      }
+
+      const commentForm = document.createElement('div');
+      commentForm.style.cssText = 'display:flex; gap:8px; margin-top:8px;';
+      const commentInput = document.createElement('input');
+      commentInput.type = 'text';
+      commentInput.className = 'requires-online';
+      commentInput.placeholder = 'মন্তব্য লেখো...';
+      commentInput.style.cssText = 'flex:1; padding:8px; border:1px solid var(--parchment-deep); border-radius:8px; font-family:inherit; font-size:0.88rem;';
+      const commentBtn = document.createElement('button');
+      commentBtn.type = 'button';
+      commentBtn.className = 'requires-online';
+      commentBtn.textContent = 'পাঠাও';
+      commentBtn.style.cssText = 'background:var(--forest); color:#fff; border:none; padding:8px 14px; border-radius:8px; font-size:0.85rem; cursor:pointer;';
+      commentBtn.addEventListener('click', async () => {
+        const text = commentInput.value.trim();
+        if (!text) return;
+        const updated = [...comments, { name: currentStudent.name, text: text, date: new Date().toISOString() }];
+        await db.collection('shareboard').doc(p.id).set({ comments: updated }, { merge: true });
+        loadShareBoard();
+      });
+      commentForm.appendChild(commentInput);
+      commentForm.appendChild(commentBtn);
+      item.appendChild(commentForm);
+
       const delBtn = document.createElement('button');
       delBtn.className = 'sb-del requires-online';
       delBtn.type = 'button';
@@ -2534,6 +2636,21 @@ function updateOnlineStatus(){
 }
 window.addEventListener('online', updateOnlineStatus);
 window.addEventListener('offline', updateOnlineStatus);
+
+function applyTheme(){
+  const saved = localStorage.getItem('theme');
+  const isDark = saved === 'dark';
+  document.body.classList.toggle('dark-mode', isDark);
+  const btn = document.getElementById('themeToggleBtn');
+  if (btn) btn.textContent = isDark ? '☀️' : '🌙';
+}
+
+document.getElementById('themeToggleBtn').addEventListener('click', () => {
+  const isDark = document.body.classList.contains('dark-mode');
+  localStorage.setItem('theme', isDark ? 'light' : 'dark');
+  applyTheme();
+});
+applyTheme();
 
 navigate(currentStudent ? 'screen-home' : 'screen-login');
 updateOnlineStatus();
