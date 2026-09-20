@@ -746,7 +746,6 @@
     <div class="card" style="position:relative;">
       <label class="field-label">Search Notes</label>
       <input type="text" id="pnSearchInput" placeholder="ফোল্ডার বা নোটের নাম লেখো..." autocomplete="off">
-      <div id="pnSuggestDropdown" style="display:none; position:absolute; left:20px; right:20px; top:78px; background:#fff; border:1px solid var(--parchment-deep); border-radius:10px; box-shadow:var(--card-shadow); z-index:20; max-height:220px; overflow-y:auto;"></div>
     </div>
     <div class="card">
       <label class="field-label">ক্যাটাগরি / প্রজেক্টের নাম</label>
@@ -2756,34 +2755,39 @@ async function loadPersonalNotes(){
     document.getElementById('pnFolderSuggestions').innerHTML =
       [...new Set(personalNotesCache.map(n => n.folder || 'সাধারণ'))].map(f => `<option value="${f}">`).join('');
 
-    if (!personalNotesCache.length){
-      box.innerHTML = '<div class="placeholder-box">এখনো কোনো নোট নেই। উপরে লিখে সেভ করো।</div>';
-      return;
-    }
-    const folders = {};
-    personalNotesCache.forEach(n => {
-      const f = n.folder || 'সাধারণ';
-      if (!folders[f]) folders[f] = [];
-      folders[f].push(n);
-    });
-    box.innerHTML = '';
-    Object.keys(folders).sort().forEach(folderName => {
-      const card = document.createElement('div');
-      card.className = 'folder-card';
-      card.innerHTML = `
-        <div class="folder-icon">📁</div>
-        <div style="flex:1;">
-          <div class="note-title">${folderName}</div>
-          <div class="meta">${folders[folderName].length}টা নোট</div>
-        </div>
-        <div style="color:var(--forest); font-size:1.2rem;">›</div>
-      `;
-      card.addEventListener('click', () => openPnFolder(folderName));
-      box.appendChild(card);
-    });
+    renderFolderSummary();
   }catch(e){
     box.innerHTML = '<div class="placeholder-box">লোড করতে সমস্যা হয়েছে।</div>';
   }
+}
+
+function renderFolderSummary(){
+  const box = document.getElementById('pnList');
+  if (!personalNotesCache.length){
+    box.innerHTML = '<div class="placeholder-box">এখনো কোনো নোট নেই। উপরে লিখে সেভ করো।</div>';
+    return;
+  }
+  const folders = {};
+  personalNotesCache.forEach(n => {
+    const f = n.folder || 'সাধারণ';
+    if (!folders[f]) folders[f] = [];
+    folders[f].push(n);
+  });
+  box.innerHTML = '';
+  Object.keys(folders).sort().forEach(folderName => {
+    const card = document.createElement('div');
+    card.className = 'folder-card';
+    card.innerHTML = `
+      <div class="folder-icon">📁</div>
+      <div style="flex:1;">
+        <div class="note-title">${folderName}</div>
+        <div class="meta">${folders[folderName].length}টা নোট</div>
+      </div>
+      <div style="color:var(--forest); font-size:1.2rem;">›</div>
+    `;
+    card.addEventListener('click', () => openPnFolder(folderName));
+    box.appendChild(card);
+  });
 }
 
 function openPnFolder(folderName){
@@ -2795,6 +2799,47 @@ function openPnFolder(folderName){
   renderPnFolder(folderName);
 }
 
+function buildPnNoteCard(n, folderName, onDeleteCallback){
+  const item = document.createElement('div');
+  item.className = 'note-item';
+  let html = `<div class="note-title">${n.title || '(শিরোনামহীন)'}</div><div class="meta">📁 ${folderName} — ${new Date(n.date).toLocaleDateString('bn-BD')}</div><div style="white-space:pre-wrap; margin-top:6px; font-size:0.98rem;">${n.text || ''}</div>`;
+  if (n.image) html += `<img class="sb-img" src="${n.image}" style="cursor:pointer;" onclick="openImageLightbox('${n.image}')">`;
+  item.innerHTML = html;
+
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex; gap:10px; margin-top:6px;';
+  const editBtn = document.createElement('button');
+  editBtn.className = 'sb-del requires-online';
+  editBtn.type = 'button';
+  editBtn.style.color = 'var(--forest)';
+  editBtn.textContent = 'এডিট করো';
+  editBtn.addEventListener('click', () => {
+    editingPersonalNoteId = n.id;
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-personal-notes').classList.add('active');
+    window.scrollTo({top:0, behavior:'smooth'});
+    document.getElementById('pnFolderInput').value = folderName;
+    document.getElementById('pnTitleInput').value = n.title || '';
+    document.getElementById('pnTextInput').value = n.text || '';
+    document.getElementById('pnSaveBtn').textContent = 'আপডেট করো';
+    document.getElementById('pnFolderInput').scrollIntoView({behavior:'smooth'});
+  });
+  const delBtn = document.createElement('button');
+  delBtn.className = 'sb-del requires-online';
+  delBtn.type = 'button';
+  delBtn.textContent = 'মুছে ফেলো';
+  delBtn.addEventListener('click', async () => {
+    if (!confirm('এই নোটটা মুছে ফেলবে?')) return;
+    await db.collection('personalNotes').doc(n.id).delete();
+    await loadPersonalNotes();
+    if (onDeleteCallback) onDeleteCallback();
+  });
+  btnRow.appendChild(editBtn);
+  btnRow.appendChild(delBtn);
+  item.appendChild(btnRow);
+  return item;
+}
+
 function renderPnFolder(folderName){
   const box = document.getElementById('pnFolderList');
   const list = personalNotesCache.filter(n => (n.folder || 'সাধারণ') === folderName);
@@ -2803,86 +2848,41 @@ function renderPnFolder(folderName){
     return;
   }
   box.innerHTML = '';
-  list.forEach(n => {
-    const item = document.createElement('div');
-    item.className = 'note-item';
-    let html = `<div class="note-title">${n.title || '(শিরোনামহীন)'}</div><div class="meta">${new Date(n.date).toLocaleDateString('bn-BD')}</div><div style="white-space:pre-wrap; margin-top:6px; font-size:0.98rem;">${n.text || ''}</div>`;
-    if (n.image) html += `<img class="sb-img" src="${n.image}" style="cursor:pointer;" onclick="openImageLightbox('${n.image}')">`;
-    item.innerHTML = html;
-
-    const btnRow = document.createElement('div');
-    btnRow.style.cssText = 'display:flex; gap:10px; margin-top:6px;';
-    const editBtn = document.createElement('button');
-    editBtn.className = 'sb-del requires-online';
-    editBtn.type = 'button';
-    editBtn.style.color = 'var(--forest)';
-    editBtn.textContent = 'এডিট করো';
-    editBtn.addEventListener('click', () => {
-      editingPersonalNoteId = n.id;
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById('screen-personal-notes').classList.add('active');
-      window.scrollTo({top:0, behavior:'smooth'});
-      document.getElementById('pnFolderInput').value = folderName;
-      document.getElementById('pnTitleInput').value = n.title || '';
-      document.getElementById('pnTextInput').value = n.text || '';
-      document.getElementById('pnSaveBtn').textContent = 'আপডেট করো';
-      document.getElementById('pnFolderInput').scrollIntoView({behavior:'smooth'});
-    });
-    const delBtn = document.createElement('button');
-    delBtn.className = 'sb-del requires-online';
-    delBtn.type = 'button';
-    delBtn.textContent = 'মুছে ফেলো';
-    delBtn.addEventListener('click', async () => {
-      if (!confirm('এই নোটটা মুছে ফেলবে?')) return;
-      await db.collection('personalNotes').doc(n.id).delete();
-      await loadPersonalNotes();
-      renderPnFolder(folderName);
-    });
-    btnRow.appendChild(editBtn);
-    btnRow.appendChild(delBtn);
-    item.appendChild(btnRow);
-    box.appendChild(item);
-  });
+  list.forEach(n => box.appendChild(buildPnNoteCard(n, folderName, () => renderPnFolder(folderName))));
 }
 
-// live auto-suggest search dropdown
+// live inline search: expands matching folders with their full notes shown directly
 document.getElementById('pnSearchInput').addEventListener('input', () => {
   const term = document.getElementById('pnSearchInput').value.trim().toLowerCase();
-  const dropdown = document.getElementById('pnSuggestDropdown');
-  if (!term){ dropdown.style.display = 'none'; dropdown.innerHTML = ''; return; }
+  const box = document.getElementById('pnList');
+  if (!term){ renderFolderSummary(); return; }
 
-  const folderMatches = [...new Set(personalNotesCache.map(n => n.folder || 'সাধারণ'))]
-    .filter(f => f.toLowerCase().includes(term));
-  const titleMatches = personalNotesCache.filter(n => (n.title || '').toLowerCase().includes(term));
+  const folders = {};
+  personalNotesCache.forEach(n => {
+    const f = n.folder || 'সাধারণ';
+    const folderMatches = f.toLowerCase().includes(term);
+    const noteMatches = (n.title || '').toLowerCase().includes(term) || (n.text || '').toLowerCase().includes(term);
+    if (folderMatches || noteMatches){
+      if (!folders[f]) folders[f] = [];
+      folders[f].push(n);
+    }
+  });
 
-  const results = [];
-  folderMatches.forEach(f => results.push({ type: 'folder', label: f }));
-  titleMatches.forEach(n => results.push({ type: 'note', label: n.title, folder: n.folder || 'সাধারণ' }));
-
-  if (!results.length){
-    dropdown.style.display = 'block';
-    dropdown.innerHTML = '<div style="padding:12px; color:#888; font-size:0.9rem;">কিছু পাওয়া যায়নি</div>';
+  const folderNames = Object.keys(folders);
+  if (!folderNames.length){
+    box.innerHTML = '<div class="placeholder-box">কিছু পাওয়া যায়নি।</div>';
     return;
   }
-  dropdown.style.display = 'block';
-  dropdown.innerHTML = results.slice(0, 8).map((r, i) => `
-    <div class="pn-suggest-row" data-idx="${i}" style="padding:10px 14px; border-bottom:1px solid var(--parchment-deep); cursor:pointer; font-size:0.92rem;">
-      ${r.type === 'folder' ? '📁' : '📝'} ${r.label}${r.type === 'note' ? `<span style="color:#999; font-size:0.8rem;"> — ${r.folder}</span>` : ''}
-    </div>
-  `).join('');
-  dropdown.querySelectorAll('.pn-suggest-row').forEach((row, i) => {
-    row.addEventListener('click', () => {
-      const r = results[i];
-      document.getElementById('pnSearchInput').value = '';
-      dropdown.style.display = 'none';
-      openPnFolder(r.type === 'folder' ? r.label : r.folder);
+  box.innerHTML = '';
+  folderNames.sort().forEach(folderName => {
+    const heading = document.createElement('h2');
+    heading.style.cssText = 'font-size:1rem; color:var(--gold); margin:14px 0 8px;';
+    heading.textContent = '📁 ' + folderName;
+    box.appendChild(heading);
+    folders[folderName].forEach(n => {
+      box.appendChild(buildPnNoteCard(n, folderName, () => document.getElementById('pnSearchInput').dispatchEvent(new Event('input'))));
     });
   });
-});
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('#pnSearchInput') && !e.target.closest('#pnSuggestDropdown')){
-    document.getElementById('pnSuggestDropdown').style.display = 'none';
-  }
 });
 
 document.getElementById('pnSaveBtn').addEventListener('click', async () => {
