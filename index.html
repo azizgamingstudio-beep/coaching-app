@@ -773,6 +773,16 @@
     <div class="card">
       <div id="pnFolderList" class="placeholder-box">লোড হচ্ছে...</div>
     </div>
+    <div class="card">
+      <h2>এই ফোল্ডারে নতুন নোট যোগ করো</h2>
+      <label class="field-label" style="margin-top:10px;">শিরোনাম</label>
+      <input type="text" id="pnfTitleInput" placeholder="নোটের শিরোনাম">
+      <label class="field-label" style="margin-top:12px;">নোট লেখো</label>
+      <textarea id="pnfTextInput" rows="4" style="width:100%; padding:10px 8px; border:1px solid var(--parchment-deep); border-radius:6px; font-family:inherit; font-size:1rem; resize:vertical; white-space:pre-wrap;" placeholder="তোমার নোট, প্যারাগ্রাফ, বা যা খুশি লেখো..."></textarea>
+      <label class="field-label" style="margin-top:12px;">ছবি (ঐচ্ছিক)</label>
+      <input type="file" id="pnfImageInput" accept="image/*">
+      <button type="button" class="requires-online primary" style="margin-top:14px;" id="pnfSaveBtn">এই ফোল্ডারে সেভ করো</button>
+    </div>
   </div>
 
   <!-- MATH CALCULATOR -->
@@ -906,7 +916,12 @@ async function navigate(id){
   if (id === 'screen-myreport') loadMyReport();
   if (id === 'screen-shareboard'){ loadShareBoard(); markSeen('shareboard'); }
   if (id === 'screen-members') loadMembers();
-  if (id === 'screen-personal-notes'){ currentOpenPnFolder = null; loadPersonalNotes(); }
+  if (id === 'screen-personal-notes'){
+    currentOpenPnFolder = null;
+    editingPersonalNoteId = null;
+    document.getElementById('pnSaveBtn').textContent = 'নোট সেভ করো';
+    loadPersonalNotes();
+  }
   if (id === 'screen-home'){ checkNotifications(); showFunMessage(); }
 }
 
@@ -2796,8 +2811,41 @@ function openPnFolder(folderName){
   document.getElementById('screen-pn-folder').classList.add('active');
   window.scrollTo({top:0, behavior:'smooth'});
   document.getElementById('pnFolderTitle').textContent = '📁 ' + folderName;
+  document.getElementById('pnfTitleInput').value = '';
+  document.getElementById('pnfTextInput').value = '';
+  document.getElementById('pnfImageInput').value = '';
   renderPnFolder(folderName);
 }
+
+document.getElementById('pnfSaveBtn').addEventListener('click', async () => {
+  const titleField = document.getElementById('pnfTitleInput');
+  const textField = document.getElementById('pnfTextInput');
+  const imageInput = document.getElementById('pnfImageInput');
+  if (!textField.value.trim() && !imageInput.files[0]){
+    alert('লেখা বা ছবি অন্তত একটা দাও।');
+    return;
+  }
+  try{
+    let imageData = null;
+    if (imageInput.files[0]) imageData = await resizeImageFile(imageInput.files[0], 700);
+    const data = {
+      owner: currentStudent.name,
+      folder: currentOpenPnFolder,
+      title: titleField.value.trim(),
+      text: textField.value,
+      image: imageData,
+      date: new Date().toISOString()
+    };
+    await db.collection('personalNotes').add(data);
+    titleField.value = '';
+    textField.value = '';
+    imageInput.value = '';
+    await loadPersonalNotes();
+    renderPnFolder(currentOpenPnFolder);
+  }catch(e){
+    alert('সেভ করতে সমস্যা হয়েছে, আবার চেষ্টা করো।');
+  }
+});
 
 function buildPnNoteCard(n, folderName, onDeleteCallback){
   const item = document.createElement('div');
